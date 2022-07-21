@@ -1,0 +1,211 @@
+#include "spectrum.h"
+/*
+static void loop_color(t_bunny_position pos, t_main_data *data)
+{
+  unsigned int *pixel;
+  int width;
+
+  width = data->dessin->clipable.buffer.width;
+  pixel = data->dessin->pixels;
+  if (pixel[width * pos.y + pos.x + 1] == data->verif_color)
+  {
+    if (pos.x < width)
+    {
+      pos.x++;
+      pixel[pos.y * width + pos.x] = data->color;
+      loop_color(pos, data);
+    }
+  }
+  if (pixel[width * pos.y + pos.x - 1] == data->verif_color)
+  {
+    if (pos.x > 0)
+    {
+      pos.x--;
+      pixel[pos.y * width + pos.x] = data->color;
+      loop_color(pos, data);
+    }
+  }
+  if (pixel[width * (pos.y + 1) + pos.x] == data->verif_color)
+  {
+    if (pos.y < data->dessin->clipable.buffer.height)
+    {
+      pos.y++;
+      pixel[pos.y * width + pos.x] = data->color;
+      loop_color(pos, data);
+    }
+  }
+  if (pixel[width * (pos.y - 1) + pos.x] == data->verif_color)
+  {
+    if (pos.y > 0)
+    {
+      pos.y--;
+      pixel[pos.y * width + pos.x] = data->color;
+      loop_color(pos, data);
+    }
+  }
+}
+*/
+
+static void step_three(t_bunny_position pos, t_main_data *data)
+{
+  static int demi;
+  t_bunny_position sentinel3;
+  unsigned int *pixel;
+  int width;
+
+  width = data->dessin->clipable.buffer.width;
+  pixel = data->dessin->pixels;
+  sentinel3 = pos;
+  if (demi == 2)
+    {
+      while((pixel[width * sentinel3.y + sentinel3.x + 1] == data->verif_color || pixel[width * sentinel3.y + sentinel3.x + 1] == GREEN)
+	    && sentinel3.x < width)
+	{
+	  sentinel3.x++;
+	  pixel[width * sentinel3.y + sentinel3.x] = GREEN;
+	}
+      sentinel3 = pos;
+      while((pixel[width * sentinel3.y + sentinel3.x - 1] == data->verif_color || pixel[width * sentinel3.y + sentinel3.x - 1] == GREEN)
+	    && sentinel3.x > 0)
+	{
+	  sentinel3.x--;
+	  pixel[width * sentinel3.y + sentinel3.x] = GREEN;
+	}
+      demi = 0;
+    }
+  demi++;
+}
+
+static void step_two(t_bunny_position pos, t_main_data *data)
+{
+  static int demi;
+  t_bunny_position sentinel2;
+  unsigned int *pixel;
+  int width;
+
+  width = data->dessin->clipable.buffer.width;
+  pixel = data->dessin->pixels;
+  sentinel2 = pos;
+  while ((pixel[width * (sentinel2.y + 1) + sentinel2.x] == data->verif_color || pixel[width * (sentinel2.y + 1) + sentinel2.x] == GREEN)
+	 && sentinel2.y < data->dessin->clipable.buffer.height)
+    {
+      sentinel2.y++;
+      pixel[sentinel2.y * width + sentinel2.x] = GREEN;
+      if (demi == 20)
+	{
+	  step_three(sentinel2, data);
+	  demi = 0;
+	}
+      demi++;
+    }
+  sentinel2 = pos;
+  while ((pixel[width * (sentinel2.y - 1) + sentinel2.x] == data->verif_color || pixel[width * (sentinel2.y - 1) + sentinel2.x] == GREEN)
+	 && sentinel2.y > 0)
+    {
+      sentinel2.y--;
+      pixel[sentinel2.y * width + sentinel2.x] = GREEN;
+      if (demi == 20)
+	{
+	  step_three(sentinel2, data);
+	  demi = 0;
+	}
+      demi++;
+    }
+}
+
+static void setp_one(t_bunny_position pos, t_main_data *data)
+{
+  t_bunny_position sentinel;
+  t_bunny_position start;
+  unsigned int *pixel;
+  int width;
+
+  width = data->dessin->clipable.buffer.width;
+  pixel = data->dessin->pixels;
+  start = pos;
+  pixel[pos.y * width + pos.x] = GREEN;
+  while ((pixel[width * (pos.y + 1) + pos.x] == data->verif_color || pixel[width * (pos.y + 1) + pos.x] == GREEN) && pos.y < data->dessin->clipable.buffer.height)//setp one
+    {
+      pos.y++;
+      pixel[pos.y * width + pos.x] = GREEN;
+    }
+  while (pos.y >= start.y)
+    {
+      sentinel = pos;
+      while((pixel[width * sentinel.y + sentinel.x + 1] == data->verif_color || pixel[width * sentinel.y + sentinel.x + 1] == GREEN)
+	    && sentinel.x < width)
+	{
+	  sentinel.x++;
+	  pixel[width * sentinel.y + sentinel.x] = GREEN;
+	  step_two(sentinel, data);
+	}
+      sentinel = pos;
+      while((pixel[width * sentinel.y + sentinel.x - 1] == data->verif_color || pixel[width * sentinel.y + sentinel.x - 1] == GREEN)
+	    && sentinel.x > 0)
+	{
+	  sentinel.x--;
+	  pixel[width * sentinel.y + sentinel.x] = GREEN;
+	  step_two(sentinel, data);
+	}
+      pos.y--;
+    }
+  pos = start;
+  while ((pixel[width * (pos.y - 1) + pos.x] == data->verif_color || pixel[width * (pos.y - 1) + pos.x] == GREEN)
+	 && pos.y > 0)
+    {
+      pos.y--;
+      pixel[pos.y * width + pos.x] = GREEN;
+    }
+  while (pos.y <= start.y)
+    {
+      sentinel = pos;
+      while((pixel[width * sentinel.y + sentinel.x + 1] == data->verif_color || pixel[width * sentinel.y + sentinel.x + 1] == GREEN)
+	    && sentinel.x < width)
+	{
+	  sentinel.x++;
+	  pixel[width * sentinel.y + sentinel.x] = GREEN;
+	  step_two(sentinel,data);
+	}
+      sentinel = pos;
+      while((pixel[width * sentinel.y + sentinel.x - 1] == data->verif_color || pixel[width * sentinel.y + sentinel.x - 1] == GREEN)
+	    && sentinel.x > 0)
+	{
+	  sentinel.x--;
+	  pixel[width * sentinel.y + sentinel.x] = GREEN;
+	  step_two(sentinel,data);
+	}
+      pos.y++;
+    }
+  pos = start;
+  t_bunny_position pos_switch;
+  pos_switch.x = 0;
+  pos_switch.y = 0;
+  while(pos_switch.x * pos_switch.y < data->dessin->clipable.buffer.width * data->dessin->clipable.buffer.height)
+    {
+      if (pixel[width * pos_switch.y + pos_switch.x] == GREEN)
+	pixel[width * pos_switch.y + pos_switch.x] = data->color;
+      if(pos_switch.x == data->dessin->clipable.buffer.width)
+	{
+	  pos_switch.x = 0;
+	  pos_switch.y++;
+	}
+      pos_switch.x++;
+    }
+}
+
+void peinture(t_main_data *data)
+{
+  const t_bunny_position *position;
+  t_bunny_position pos;
+
+  position = bunny_get_mouse_position();
+  pos.x = position->x - data->pos_dessin.x;
+  pos.y = position->y - data->pos_dessin.y;
+  if (data->check == true)
+  {
+    data->verif_color = get_pixel(data->dessin, pos);
+    if (data->verif_color != data->color)
+      setp_one(pos, data);
+    data->check = false;
+  }
+}

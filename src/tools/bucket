@@ -1,0 +1,32 @@
+/**
+ * @ Author: Your name
+ * @ Create Time: 2022-03-15 11:53:00
+ * @ Modified by: Your name
+ * @ Modified time: 2022-03-15 15:21:02
+ * @ Copyright: Antoine ROSPARS - All Rights Reserved - 2022
+ */
+
+#include "bucket.h"
+#include <stdio.h>
+
+static void
+flood_fill (t_bunny_pixelarray *px, t_bunny_position pos,
+            unsigned int old_color, unsigned int new_color)
+{
+}
+
+void
+bucket (t_main_data *data)
+{
+  const t_bunny_position *pos = bunny_get_mouse_position ();
+  t_bunny_position pos2;
+
+  if (bunny_get_mouse_button ()[BMB_LEFT] && data->check)
+    {
+      pos2.x = pos->x;
+      pos2.y = pos->y;
+      data->check = false;
+      data->verif_color = get_pixel (data->dessin, pos2);
+      flood_fill (data->dessin, pos2, data->verif_color, data->color);
+    }
+}
